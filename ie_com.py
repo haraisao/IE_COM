@@ -50,7 +50,9 @@ def ActivateWin(wshell,name):
 #  COM Wrapper for IE
 #
 class ie_com:
-
+  #
+  #  Initialize
+  #
   def __init__(self, new_win=False):
     self.ie =None
     self.shell = None
@@ -58,6 +60,7 @@ class ie_com:
     if new_win : self.newWindow()
   #
   # Create New Window
+  #
   def newWindow(self, visible=1) :
     self.ie = win32com.client.Dispatch("InternetExplorer.Application")
     self.ie.Visible=visible
@@ -72,6 +75,9 @@ class ie_com:
     self.setShell()
     return self.shell.Windows().Count
 
+  #
+  # Show list of windows
+  # 
   def listWindows(self) :
     count = self.getNumOfWindows()
     print "==== List of IE Window ===="
@@ -84,6 +90,9 @@ class ie_com:
           print "%d: [File] %s" % (i, loc)
     print "========================="
 
+  #
+  # Set a target IE Windows to control
+  #
   def setIE(self, idx) :
     if type(idx) == types.IntType :
       count = self.getNumOfWindows()
@@ -95,7 +104,8 @@ class ie_com:
     else:
       print "Invalid Argument: the arg1 should be IntType."
 
-
+  #
+  #  Close IE Window
   def quitWindow(self, idx) :
     count = self.getNumOfWindows()
     if idx < count and idx > 0:
@@ -104,11 +114,15 @@ class ie_com:
     else:
       print "Invalid Window index, (0 < idx < %d )" % (count)
 
-
+  #
+  #  Open URL
+  #
   def navigate(self, url):
     self.ie.Navigate(url)
     while self.ie.Busy : sleep(1)
 
+  #
+  # 
   def getDocument(self):
     return self.ie.Document.Body
 
@@ -204,7 +218,7 @@ class ie_com:
 
   def listInputs(self, val=None):
     itms = self.getElementsByTagName('input')
-    print "==== List of anchors ===="
+    print "==== List of Inputs ===="
     for i in range(itms.length):
       if itms[i].type != 'hidden' :
         if val :
@@ -218,7 +232,7 @@ class ie_com:
 
   def listButtons(self, val=None):
     itms = self.getElementsByTagName('input')
-    print "==== List of anchors ===="
+    print "==== List of Buttons ===="
     for i in range(itms.length):
       if itms[i].type == 'button' or itms[i].type == 'submit' :
         if val :
@@ -228,6 +242,19 @@ class ie_com:
             print "%d: [ type = %s, name = %s, value = %s ]" % (i, itms[i].type, itms[i].name, itms[i].value)
         else:
           print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
+    print "========================="
+
+  def listButtonTag(self, val=None):
+    itms = self.getElementsByTagName('button')
+    print "==== List of Buttons ===="
+    for i in range(itms.length):
+      if val :
+        info = itms[i].value
+        name = itms[i].name
+        if findString(info, val) or findString(name, val) :
+          print "%d: [ type = %s, name = %s, value = %s ]" % (i, itms[i].type, itms[i].name, itms[i].value)
+      else:
+        print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
     print "========================="
 
 
@@ -359,22 +386,7 @@ class ie_com:
 #---- sample navigation
 def main():
   ie=ie_com()
-  ie.navigate(intra_site['loginpage'])
-
-  if len(sys.argv) > 2:
-    ie.setValueToInput('username',sys.argv[1])
-    ie.setValueToInput('password',sys.argv[2])
-    ie.clickInputByValue('LOGIN')
- 
-    if len(sys.argv) > 3:
-      sleep(1)
-      try:
-        site = intra_site[sys.argv[3]]
-        ie.navigate(site)
-      except:
-        ie.navigate(sys.argv[3])
-
-
+  ie.navigate(top)
 
 if __name__ == "__main__":
   main()
