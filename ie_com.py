@@ -7,8 +7,7 @@ from time import sleep
 
 
 #-----------------
-
-top="http://hara.jpn.com/"
+home = "http://www.yahoo.co.jp"
 #-----------------
 
 def getFileName(pth):
@@ -33,6 +32,7 @@ def findString(info, key) :
 def isWebUrl(info) :
   if type(info) == types.StringType or type(info) == types.UnicodeType :
     if info.find('http') >=0 : return True
+    if not info : return True
   return False
 
 ####
@@ -44,23 +44,18 @@ def ActivateWin(wshell,name):
     wshell.AppActivate('TEST')
 
 
-###
-
+#################################
 #
 #  COM Wrapper for IE
 #
 class ie_com:
-  #
-  #  Initialize
-  #
+
   def __init__(self, new_win=False):
     self.ie =None
     self.shell = None
     self.wshell = None
     if new_win : self.newWindow()
-  #
-  # Create New Window
-  #
+
   def newWindow(self, visible=1) :
     self.ie = win32com.client.Dispatch("InternetExplorer.Application")
     self.ie.Visible=visible
@@ -75,54 +70,86 @@ class ie_com:
     self.setShell()
     return self.shell.Windows().Count
 
-  #
-  # Show list of windows
-  # 
-  def listWindows(self) :
+  def getWebWindow(self):
     count = self.getNumOfWindows()
-    print "==== List of IE Window ===="
+    res=[]
     for i in range(count) :
       if self.shell.Windows().Item(i) :
         loc = self.shell.Windows().Item(i).LocationName
         if isWebUrl(self.shell.Windows().Item(i).LocationURL) :
-          print "%d: [ Web] %s" % (i, loc)
-        else:
-          print "%d: [File] %s" % (i, loc)
-    print "========================="
+          res.append(i)
+    return res    
 
-  #
-  # Set a target IE Windows to control
-  #
-  def setIE(self, idx) :
+  def setNthWindow(self, n):
+    wins = self.getWebWindow()
+    try:
+      self.setTargetWindow(wins[n])
+    except:
+      print "Error in setNthWindow"
+    return
+
+  def setFirstWindow(self):
+    wins = self.setNthWindow(0)
+    return
+
+  def setLastWindow(self):
+    wins = self.setNthWindow(-1)
+    return
+
+  def listWindows(self) :
+    count = self.getNumOfWindows()
+    res = "==== List of IE Window ====\n"
+    for i in range(count) :
+      if self.shell.Windows().Item(i) :
+        loc = self.shell.Windows().Item(i).LocationName
+        if isWebUrl(self.shell.Windows().Item(i).LocationURL) :
+          res += "%d: [ Web] %s\n" % (i, loc)
+        else:
+          res += "%d: [File] %s\n" % (i, loc)
+    res += "===========================\n"
+
+    return res
+
+  def getWindowsList(self) :
+    count = self.getNumOfWindows()
+    res = {}
+    for i in range(count) :
+      if self.shell.Windows().Item(i) :
+        loc = self.shell.Windows().Item(i).LocationName
+        if isWebUrl(self.shell.Windows().Item(i).LocationURL) :
+          res[i]= "[Web] %s" % (loc)
+        else:
+          res[i]= "[File] %s" % (loc)
+    return res
+
+  def setTargetWindow(self, idx) :
     if type(idx) == types.IntType :
       count = self.getNumOfWindows()
       if idx < count and idx >= 0:
         self.ie = self.shell.Windows().Item(idx)
         print "set Window to '%s'" % (self.ie.LocationName)
+        return True
       else:
         print "Invalid Window index, (0 < idx < %d )" % (count)
     else:
       print "Invalid Argument: the arg1 should be IntType."
+    return False
 
-  #
-  #  Close IE Window
-  def quitWindow(self, idx) :
+  def closeWindow(self, idx=-1) :
     count = self.getNumOfWindows()
-    if idx < count and idx > 0:
+    if idx < 0:
+      self.ie.Quit()
+      self.ie=None
+    elif idx < count :
       self.ie = self.shell.Windows().Item(idx)
       self.ie.Quit()
     else:
       print "Invalid Window index, (0 < idx < %d )" % (count)
 
-  #
-  #  Open URL
-  #
   def navigate(self, url):
     self.ie.Navigate(url)
     while self.ie.Busy : sleep(1)
 
-  #
-  # 
   def getDocument(self):
     return self.ie.Document.Body
 
@@ -146,26 +173,24 @@ class ie_com:
         return itms[i]
     return None
 
-
   def listAnchors(self, key=None, start=0, count=20):
     itms = self.getElementsByTagName('a')
     countIdx = 0
-    print "==== List of anchors (%d/%d)====" % (start, itms.length)
-
+    res = "==== List of anchors (%d/%d)====\n" % (start, itms.length)
     for i in range(itms.length):
       if i >= start:
         if countIdx < count :
           info = getAnchorInfo(itms[i])
           if key :
             if findString(info, key) :
-              print "[ %d: %s ]" % (i, info)
+              res += "[ %d: %s ]\n" % (i, info)
               countIdx += 1
           else:
-            print "%d: %s" % (i, info)
+            res += "%d: %s\n" % (i, info)
             countIdx += 1
+    res += "=========================\n"
 
-    print "========================="
-
+    return res
 
   def getAnchorByIndex(self, n):
     itms = self.getElementsByTagName('a')
@@ -218,70 +243,63 @@ class ie_com:
 
   def listInputs(self, val=None):
     itms = self.getElementsByTagName('input')
-    print "==== List of Inputs ===="
+    res = "==== List of anchors ====\n"
     for i in range(itms.length):
       if itms[i].type != 'hidden' :
         if val :
           info = itms[i].value
           name = itms[i].name
           if findString(info, val) or findString(name, val) :
-            print "%d: [ type = %s, name = %s, value = %s ]" % (i, itms[i].type, itms[i].name, itms[i].value)
+            res += "%d: [ type = %s, name = %s, value = %s ]\n" % (i, itms[i].type, itms[i].name, itms[i].value)
         else:
-          print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
-    print "========================="
+          res += "%d: type = %s, name = %s, value = %s\n" % (i, itms[i].type, itms[i].name, itms[i].value)
+    res += "=========================\n"
+
+    return res
 
   def listButtons(self, val=None):
     itms = self.getElementsByTagName('input')
-    print "==== List of Buttons ===="
+    res = "==== List of anchors ====\n"
     for i in range(itms.length):
       if itms[i].type == 'button' or itms[i].type == 'submit' :
         if val :
           info = itms[i].value
           name = itms[i].name
           if findString(info, val) or findString(name, val) :
-            print "%d: [ type = %s, name = %s, value = %s ]" % (i, itms[i].type, itms[i].name, itms[i].value)
+            res += "%d: [ type = %s, name = %s, value = %s ]\n" % (i, itms[i].type, itms[i].name, itms[i].value)
         else:
-          print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
-    print "========================="
+          res += "%d: type = %s, name = %s, value = %s\n" % (i, itms[i].type, itms[i].name, itms[i].value)
+    res += "=========================\n"
 
-  def listButtonTag(self, val=None):
-    itms = self.getElementsByTagName('button')
-    print "==== List of Buttons ===="
-    for i in range(itms.length):
-      if val :
-        info = itms[i].value
-        name = itms[i].name
-        if findString(info, val) or findString(name, val) :
-          print "%d: [ type = %s, name = %s, value = %s ]" % (i, itms[i].type, itms[i].name, itms[i].value)
-      else:
-        print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
-    print "========================="
-
+    return res
 
   def listTextInputs(self, val=None):
     itms = self.getElementsByTagName('input')
-    print "==== List of Text Inputs ===="
+    res = "==== List of anchors ====\n"
     for i in range(itms.length):
       if itms[i].type == 'text' or itms[i].type == '' :
         if val :
           info = itms[i].value
           name = itms[i].name
           if findString(info, val) or findString(name, val) :
-            print "%d: [ type = %s, name = %s, value = %s ]" % (i, itms[i].type, itms[i].name, itms[i].value)
+            res += "%d: [ type = %s, name = %s, value = %s ]\n" % (i, itms[i].type, itms[i].name, itms[i].value)
         else:
-          print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
-    print "========================="
+          res += "%d: type = %s, name = %s, value = %s\n" % (i, itms[i].type, itms[i].name, itms[i].value)
+    res += "=========================\n"
+
+    return res
 
   def findInput(self, key):
     itms = self.getElementsByTagName('input')
-    print "==== List of Inputs ===="
+    res += "==== List of anchors ====\n"
     for i in range(itms.length):
       if itms[i].type != 'hidden' :
         info = itms[i].value
         if findString(info, key)  :
-          print "%d: type = %s, name = %s, value = %s" % (i, itms[i].type, itms[i].name, itms[i].value)
-    print "========================="
-
+          res += "%d: type = %s, name = %s, value = %s\n" % (i, itms[i].type, itms[i].name, itms[i].value)
+    res += "=========================\n"
+  
+    return res
 
   def getInputByIndex(self, n):
     itms = self.getElementsByTagName('input')
@@ -290,7 +308,6 @@ class ie_com:
     else:
       print "Invaild Index"
       return None
-
 
   def clickInputByIndex(self, n):
     itm = self.getInputByIndex(n)
@@ -386,7 +403,7 @@ class ie_com:
 #---- sample navigation
 def main():
   ie=ie_com()
-  ie.navigate(top)
+  ie.navigate(home)
 
 if __name__ == "__main__":
   main()
