@@ -5,21 +5,6 @@ import win32com.client
 from time import sleep
 
 
-def getFileName(pth):
-  pths = pth.split('/')
-  return pths[len(pths) -1]
-
-def findString(info, key) :
-  if type(info) == types.StringType or type(info) == types.UnicodeType :
-    if info.find(key) >= 0:
-      return True
-  return False
-
-def isWebUrl(info) :
-  if type(info) == types.StringType or type(info) == types.UnicodeType :
-    if info.find('http') >=0 : return True
-  return False
-
 #
 #  COM Wrapper for PowerPoint
 #
