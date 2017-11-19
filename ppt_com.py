@@ -45,6 +45,7 @@ class ppt_com:
         self.presentation = self.app.Presentations.Open(fname)
       else:
         self.presentation = self.app.Presentations.Add()
+        self.newSlide(1,1)
     except:
       print "Error in open %s" % fname
 
@@ -72,6 +73,22 @@ class ppt_com:
   def addSlide(self, cat):
     n = self.presentation.Slides.Count + 1
     self.newSlide(n, cat)
+
+  def getSlide(self, idx):
+    try:
+      return self.presentation.Slides(idx)
+    except:
+      print "Error in getSlide"
+      return None
+
+  def selectSlide(self,idx):
+    if idx > 0 and idx <= self.presentation.Slides.Count :
+      self.slide = self.getSlide(idx)
+    return self.slide 
+
+  def addShape(self, typ, top, left, width, height):
+    if self.slide :
+      self.slide.Shapes.AddShape(typ, top, left, width, height)
 
   def runSlideShow(self):
     try:
