@@ -31,7 +31,7 @@ class ppt_com:
     self.shell = None
     self.presentation = None
     self.slide = None
-    self.view = None
+    self.window = None
 
   def setShell(self) :
     if not self.shell :
@@ -39,9 +39,12 @@ class ppt_com:
     if not self.wshell :
       self.wshell = win32com.client.Dispatch("WScript.Shell")
 
-  def open(self, fname):
+  def open(self, fname=""):
     try:
-      self.presentation = self.app.Presentations.Open(fname)
+      if fname :
+        self.presentation = self.app.Presentations.Open(fname)
+      else:
+        self.presentation = self.app.Presentations.Add()
     except:
       print "Error in open %s" % fname
 
@@ -62,47 +65,50 @@ class ppt_com:
 
   def newSlide(self, pos, cat):
     try:
-      self.slide = self.presentation.Add()
+      self.slide = self.presentation.Slides.Add(pos, cat)
     except:
       print "Error"
 
+  def addSlide(self, cat):
+    n = self.presentation.Slides.Count + 1
+    self.newSlide(n, cat)
+
   def runSlideShow(self):
     try:
-      self.view = self.presentation.SlideShowSettings.Run()
+      self.window = self.presentation.SlideShowSettings.Run()
     except:
       print "Error"
 
   def next(self):
     try:
-      self.view.View.Next()
+      self.window.View.Next()
     except:
       print "Error"
 
   def prev(self):
     try:
-      self.view.View.Previous()
+      self.window.View.Previous()
     except:
       print "Error"
 
   def end(self):
     try:
-      self.view.View.Exit()
-      self.view=None
+      self.window.View.Exit()
+      self.window=None
     except:
       print "Error"
 
   def goto(self, n):
     try:
-      self.view.View.GotoSlideEnd(n)
+      self.window.View.GotoSlideEnd(n)
     except:
       print "Error"
 
+
 #---- sample navigation
 def main():
-  exl=excel_com()
+  exl=ppt_com()
   exl.Visible=1
-
-
 
 if __name__ == "__main__":
   main()
