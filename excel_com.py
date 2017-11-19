@@ -21,7 +21,7 @@ def isWebUrl(info) :
   return False
 
 #
-#  COM Wrapper for IE
+#  COM Wrapper for Excel
 #
 class excel_com:
   def __init__(self, new_win=True):
@@ -57,7 +57,7 @@ class excel_com:
 
   def newWorkbook(self):
     try:
-      self.workbook = self.spp.Workbooks.Add()
+      self.workbook = self.app.Workbooks.Add()
       self.sheet = self.workbook.Worksheets(1).Activate()
     except:
       print "Error in newWorkbook"
