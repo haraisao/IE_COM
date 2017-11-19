@@ -54,6 +54,12 @@ class ppt_com:
     except:
         print "Error in open %s" % fname
 
+  def close(self):
+    try:
+      self.presentation.Close()
+    except:
+      print "Error in open %s" % fname
+
   def newSlide(self, pos, cat):
     try:
       self.slide = self.presentation.Add()
@@ -68,19 +74,26 @@ class ppt_com:
 
   def next(self):
     try:
-      self.view.Next()
+      self.view.View.Next()
     except:
       print "Error"
 
   def prev(self):
     try:
-      self.view.Previous()
+      self.view.View.Previous()
     except:
       print "Error"
 
   def end(self):
     try:
-      self.view.End()
+      self.view.View.Exit()
+      self.view=None
+    except:
+      print "Error"
+
+  def goto(self, n):
+    try:
+      self.view.View.GotoSlideEnd(n)
     except:
       print "Error"
 
