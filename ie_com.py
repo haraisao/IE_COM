@@ -184,11 +184,11 @@ class ie_com:
     res = {}
     for i in range(itms.length):
       info = getAnchorInfo(itms[i])
-        if key :
-          if findString(info, key) :
-            res[i] = info
-        else:
-          res[i]= info
+      if key :
+        if findString(info, key) :
+          res[i] = info
+      else:
+        res[i]= info
     return res
 
   def listAnchor(self, key=None, start=0, count=20):
