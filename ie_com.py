@@ -96,19 +96,25 @@ class ie_com:
     wins = self.setNthWindow(-1)
     return
 
-  def listWindows(self) :
+  def getWindowList(self) :
     count = self.getNumOfWindows()
-    res = "==== List of IE Window ====\n"
+    res = {}
     for i in range(count) :
       if self.shell.Windows().Item(i) :
         loc = self.shell.Windows().Item(i).LocationName
         if isWebUrl(self.shell.Windows().Item(i).LocationURL) :
-          res += "%d: [ Web] %s\n" % (i, loc)
+          res[i] = "[Web] %s" % (loc)
         else:
-          res += "%d: [File] %s\n" % (i, loc)
-    res += "===========================\n"
-
+          res[i] = "[File] %s" % (loc)
     return res
+
+  def listWindow(self) :
+    wins = self.getWindowList()
+    print "==== List of IE Window ===="
+    for k,info in wins :
+      print "%d: %s" % (k, info)
+    print "==========================="
+    return 
 
   def getWindowsList(self) :
     count = self.getNumOfWindows()
@@ -173,24 +179,35 @@ class ie_com:
         return itms[i]
     return None
 
-  def listAnchors(self, key=None, start=0, count=20):
+  def getAnchorList(self, key=None):
+    itms = self.getElementsByTagName('a')
+    res = {}
+    for i in range(itms.length):
+      info = getAnchorInfo(itms[i])
+      if key :
+        if findString(info, key) :
+          res[i] = info
+      else:
+        res[i]= info
+    return res
+
+  def listAnchor(self, key=None, start=0, count=20):
     itms = self.getElementsByTagName('a')
     countIdx = 0
-    res = "==== List of anchors (%d/%d)====\n" % (start, itms.length)
+    print "==== List of anchors (%d/%d)====" % (start, itms.length)
     for i in range(itms.length):
       if i >= start:
         if countIdx < count :
           info = getAnchorInfo(itms[i])
           if key :
             if findString(info, key) :
-              res += "[ %d: %s ]\n" % (i, info)
+              print "[ %d: %s ]" % (i, info)
               countIdx += 1
           else:
-            res += "%d: %s\n" % (i, info)
+            print "%d: %s" % (i, info)
             countIdx += 1
-    res += "=========================\n"
-
-    return res
+    print "========================="
+    return 
 
   def getAnchorByIndex(self, n):
     itms = self.getElementsByTagName('a')
