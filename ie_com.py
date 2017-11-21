@@ -96,27 +96,15 @@ class ie_com:
     wins = self.setNthWindow(-1)
     return
 
-  def getWindowList(self) :
-    count = self.getNumOfWindows()
-    res = {}
-    for i in range(count) :
-      if self.shell.Windows().Item(i) :
-        loc = self.shell.Windows().Item(i).LocationName
-        if isWebUrl(self.shell.Windows().Item(i).LocationURL) :
-          res[i] = "[Web] %s" % (loc)
-        else:
-          res[i] = "[File] %s" % (loc)
-    return res
-
   def listWindow(self) :
     wins = self.getWindowList()
     print "==== List of IE Window ===="
-    for k,info in wins :
-      print "%d: %s" % (k, info)
+    for i in wins :
+      print "%d: %s" % (i, wins[i])
     print "==========================="
     return 
 
-  def getWindowsList(self) :
+  def getWindowList(self) :
     count = self.getNumOfWindows()
     res = {}
     for i in range(count) :
